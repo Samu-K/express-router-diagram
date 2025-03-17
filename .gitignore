@@ -1,0 +1,34 @@
+# Dependency directories
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Output files
+*.html
+*.txt
+*.json
+!package.json
+!package-lock.json
+!views/*.html
+!views/**/*.html
+
+# Environment variables
+.env
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Testing and coverage
+/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

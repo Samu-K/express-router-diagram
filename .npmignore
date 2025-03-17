@@ -1,0 +1,25 @@
+# Development files
+.git
+.github
+.gitignore
+.npmignore
+.vscode
+.idea
+*.log
+*.tgz
+
+# Test files
+test/
+tests/
+coverage/
+.nyc_output/
+
+# Build files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db 

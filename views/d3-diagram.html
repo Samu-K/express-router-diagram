@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Routes Flow Diagram</title>
+    
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        
+        #diagram-container {
+            width: 100%;
+            height: 100vh;
+            background-color: #1e1e1e;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .node circle {
+            stroke-width: 3px;
+            cursor: pointer;
+        }
+        
+        .node text {
+            font: 14px sans-serif;
+            fill: #e0e0e0;
+            cursor: pointer;
+        }
+        
+        .node--internal text {
+            text-shadow: 0 1px 0 #1e1e1e, 0 -1px 0 #1e1e1e, 1px 0 0 #1e1e1e, -1px 0 0 #1e1e1e;
+        }
+        
+        .link {
+            fill: none;
+            stroke-width: 2px;
+        }
+        
+        /* Method-specific styling */
+        .method-GET circle {
+            fill: #a8e6b5;
+            stroke: #28a745;
+        }
+        
+        .method-POST circle {
+            fill: #a8c9ff;
+            stroke: #007bff;
+        }
+        
+        .method-PUT circle {
+            fill: #ffe7a8;
+            stroke: #ffc107;
+        }
+        
+        .method-DELETE circle {
+            fill: #ffb3b9;
+            stroke: #dc3545;
+        }
+        
+        .method-PATCH circle {
+            fill: #a8e1e6;
+            stroke: #17a2b8;
+        }
+        
+        /* Method text colors */
+        .method-text-GET {
+            fill: #28a745;
+        }
+        
+        .method-text-POST {
+            fill: #007bff;
+        }
+        
+        .method-text-PUT {
+            fill: #ffc107;
+        }
+        
+        .method-text-DELETE {
+            fill: #dc3545;
+        }
+        
+        .method-text-PATCH {
+            fill: #17a2b8;
+        }
+        
+        /* Parent nodes without methods */
+        .parent-node circle {
+            fill: #d1d1d1;
+            stroke: #6c757d;
+        }
+        
+        /* Root node styling */
+        .root-node circle {
+            fill: #b0b0b0;
+            stroke: #343a40;
+        }
+        
+        /* Controls styling */
+        .controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: #2d2d2d;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .controls button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            background: #3d3d3d;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .controls button:hover {
+            background: #4d4d4d;
+        }
+        
+        .tooltip {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #aaaaaa;
+            background-color: #3d3d3d;
+            padding: 3px 8px;
+            border-radius: 3px;
+            border: 1px solid #555;
+        }
+        
+        /* Legend styling */
+        .legend {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            z-index: 10;
+            background: #2d2d2d;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            color: #e0e0e0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 3px;
+            border: 1px solid #555;
+        }
+        
+        /* Node menu styling */
+        .node-menu {
+            position: absolute;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            padding: 8px;
+            z-index: 100;
+            min-width: 150px;
+            max-width: 300px;
+            max-height: 400px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            resize: both;
+        }
+        
+        .node-menu-header {
+            cursor: move;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #555;
+            margin-bottom: 8px;
+        }
+        
+        .node-menu-title {
+            font-weight: bold;
+            color: #e0e0e0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+        
+        .node-menu-content {
+            overflow-y: auto;
+            flex: 1;
+            max-height: calc(100% - 40px);
+        }
+        
+        .node-menu-section {
+            margin-bottom: 10px;
+        }
+        
+        .node-menu-section-title {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 5px;
+            position: sticky;
+            top: 0;
+            background-color: #2d2d2d;
+            padding: 2px 0;
+        }
+        
+        .node-menu-items {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .node-menu-item {
+            padding: 5px 8px;
+            margin: 2px 0;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .node-menu-item:hover {
+            background-color: #3d3d3d;
+        }
+        
+        .node-menu-item-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
+        
+        .node-menu-close {
+            cursor: pointer;
+            color: #aaa;
+            font-size: 14px;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            border-radius: 50%;
+        }
+        
+        .node-menu-close:hover {
+            background-color: #444;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button id="zoom-in">Zoom In</button>
+        <button id="zoom-out">Zoom Out</button>
+        <button id="reset-zoom">Reset</button>
+        <button id="export-png">Export PNG</button>
+        <button id="test-data">Use Test Data</button>
+        <button id="print-data">Print Data</button>
+        <span class="tooltip">Click and drag to move, use mousewheel to zoom</span>
+    </div>
+    
+    <div class="legend">
+        <h4>HTTP Methods</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #a8e6b5; border-color: #28a745;"></div>
+            <span>GET</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #a8c9ff; border-color: #007bff;"></div>
+            <span>POST</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #ffe7a8; border-color: #ffc107;"></div>
+            <span>PUT</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #ffb3b9; border-color: #dc3545;"></div>
+            <span>DELETE</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #a8e1e6; border-color: #17a2b8;"></div>
+            <span>PATCH</span>
+        </div>
+    </div>
+    
+    <div id="diagram-container"></div>
+    
+    <!-- Node menu container -->
+    <div id="node-menu" class="node-menu" style="display: none;">
+        <div class="node-menu-header">
+            <div class="node-menu-title" id="node-menu-title">Node Name</div>
+            <div class="node-menu-close" onclick="closeNodeMenu()">×</div>
+        </div>
+        <div class="node-menu-content">
+            <div id="node-menu-parent" class="node-menu-section">
+                <div class="node-menu-section-title">Parent</div>
+                <div id="node-menu-parent-items" class="node-menu-items"></div>
+            </div>
+            <div id="node-menu-children" class="node-menu-section">
+                <div class="node-menu-section-title">Children</div>
+                <div id="node-menu-children-items" class="node-menu-items"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load D3.js -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    
+    <script>
+        /**
+         * Global Configuration and State
+         */
+        const Config = {
+            // Set the dimensions and margins of the diagram
+            margin: {top: 60, right: 120, bottom: 60, left: 120},
+            
+            // Initialize dimensions
+            init() {
+                this.width = window.innerWidth - this.margin.left - this.margin.right;
+                this.height = window.innerHeight - this.margin.top - this.margin.bottom;
+            },
+            
+            // Update dimensions on resize
+            updateDimensions() {
+                this.width = window.innerWidth - this.margin.left - this.margin.right;
+                this.height = window.innerHeight - this.margin.top - this.margin.bottom;
+            }
+        };
+        
+        // Initialize config
+        Config.init();
+        
+        /**
+         * Global State
+         */
+        const State = {
+            scale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            isDragging: false,
+            dragStartX: 0,
+            dragStartY: 0
+        };
+        
+        // Create the SVG container
+        const svg = d3.select("#diagram-container")
+            .append("svg")
+            .attr("width", Config.width + Config.margin.left + Config.margin.right)
+            .attr("height", Config.height + Config.margin.top + Config.margin.bottom);
+        
+        // Add a group for zoom/pan transformations
+        const g = svg.append("g")
+            .attr("transform", `translate(${Config.margin.left},${Config.margin.top})`);
+        
+        // Create a zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 3])
+            .on("zoom", () => {
+                g.attr("transform", d3.event.transform);
+                State.scale = d3.event.transform.k;
+                State.offsetX = d3.event.transform.x;
+                State.offsetY = d3.event.transform.y;
+            });
+        
+        // Apply zoom behavior to the SVG
+        svg.call(zoom);
+        
+        /**
+         * DiagramCore Module - Handles core diagram functionality
+         */
+        const DiagramCore = {
+        // Initialize the diagram
+            init() {
+            // Set up event listeners
+                this.setupEventListeners();
+            
+            // Center the diagram
+                this.centerDiagram();
+            
+            // Set up touch events for mobile and trackpad pinch zoom
+                this.setupTouchEvents();
+                
+                // Initialize draggable menu
+                NodeMenu.initDraggableMenu();
+            },
+        
+        // Center the diagram in the viewport
+            centerDiagram() {
+            svg.call(zoom.transform, d3.zoomIdentity
+                    .translate(Config.width / 2, Config.height / 2)
+                .scale(1));
+            },
+        
+        // Set up touch events for mobile and trackpad pinch zoom
+            setupTouchEvents() {
+            const container = document.getElementById('diagram-container');
+            
+            // Track touch points for pinch detection
+            let touchCache = [];
+            let startDistance = 0;
+            let startScale = 1;
+            
+            // Handle touch start event
+            container.addEventListener('touchstart', (e) => {
+                // Store the touch points
+                touchCache = Array.from(e.touches);
+                
+                // If we have two touch points, calculate the initial distance
+                if (touchCache.length === 2) {
+                        startDistance = this.getTouchDistance(touchCache[0], touchCache[1]);
+                        startScale = State.scale;
+                    
+                    // Prevent default to avoid page scrolling/zooming
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Handle touch move event for pinch zoom
+            container.addEventListener('touchmove', (e) => {
+                // If we have two touch points, handle pinch zoom
+                if (e.touches.length === 2 && touchCache.length === 2) {
+                    // Calculate current distance between touch points
+                        const currentDistance = this.getTouchDistance(e.touches[0], e.touches[1]);
+                    
+                    // Calculate scale factor
+                    const scaleFactor = currentDistance / startDistance;
+                    
+                    // Calculate new scale
+                    const newScale = Math.min(3, Math.max(0.1, startScale * scaleFactor));
+                    
+                    // Calculate the center point of the pinch
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    
+                    // Get the current transform
+                    const transform = d3.zoomTransform(svg.node());
+                    
+                    // Calculate the new transform
+                    const newTransform = d3.zoomIdentity
+                        .translate(
+                            centerX - (centerX - transform.x) * (newScale / transform.k),
+                            centerY - (centerY - transform.y) * (newScale / transform.k)
+                        )
+                        .scale(newScale);
+                    
+                    // Apply the new transform
+                    svg.call(zoom.transform, newTransform);
+                    
+                    // Prevent default to avoid page scrolling/zooming
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Handle touch end event
+            container.addEventListener('touchend', (e) => {
+                // Reset touch cache
+                touchCache = Array.from(e.touches);
+            });
+            
+            // Handle touch cancel event
+            container.addEventListener('touchcancel', (e) => {
+                // Reset touch cache
+                touchCache = [];
+            });
+            },
+        
+        // Calculate distance between two touch points
+            getTouchDistance(touch1, touch2) {
+            const dx = touch1.clientX - touch2.clientX;
+            const dy = touch1.clientY - touch2.clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+            },
+        
+        // Set up event listeners for interaction
+            setupEventListeners() {
+            // Button controls
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                svg.transition().duration(300).call(
+                    zoom.scaleBy, 1.2
+                );
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                svg.transition().duration(300).call(
+                    zoom.scaleBy, 0.8
+                );
+            });
+            
+            document.getElementById('reset-zoom').addEventListener('click', () => {
+                    this.centerDiagram();
+            });
+            
+                document.getElementById('export-png').addEventListener('click', ExportUtils.exportAsPNG);
+            
+            document.getElementById('test-data').addEventListener('click', () => {
+                    RouteRenderer.renderWithTestData();
+            });
+            
+            document.getElementById('print-data').addEventListener('click', () => {
+                    RouteDataService.printData();
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                    Config.updateDimensions();
+                
+                    svg.attr("width", Config.width + Config.margin.left + Config.margin.right)
+                       .attr("height", Config.height + Config.margin.top + Config.margin.bottom);
+            });
+        }
+        };
+        
+        /**
+         * ExportUtils Module - Handles diagram export functionality
+         */
+        const ExportUtils = {
+        // Export the diagram as PNG
+            exportAsPNG() {
+            const svgData = new XMLSerializer().serializeToString(svg.node());
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Create an image from the SVG
+            const img = new Image();
+            img.onload = function() {
+                canvas.width = svg.attr("width");
+                canvas.height = svg.attr("height");
+                
+                // Draw background
+                ctx.fillStyle = '#1e1e1e';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw the diagram
+                ctx.drawImage(img, 0, 0);
+                
+                // Create download link
+                const a = document.createElement('a');
+                a.download = 'express-routes.png';
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+            };
+            
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            img.src = url;
+        }
+        };
+
+        /**
+         * NodeMenu Module - Handles node menu functionality
+         */
+        const NodeMenu = {
+            // Node menu state
+            currentNode: null,
+            isDraggingMenu: false,
+            menuOffsetX: 0,
+            menuOffsetY: 0,
+            
+            // Initialize draggable menu
+            initDraggableMenu() {
+                const menu = document.getElementById('node-menu');
+                const header = menu.querySelector('.node-menu-header');
+                
+                // Mouse down event on the header starts the drag
+                header.addEventListener('mousedown', (e) => {
+                    // Only start drag if it's the header (not the close button)
+                    if (e.target.className === 'node-menu-close') return;
+                    
+                    this.isDraggingMenu = true;
+                    
+                    // Calculate the offset of the mouse pointer from the menu's top-left corner
+                    const menuRect = menu.getBoundingClientRect();
+                    this.menuOffsetX = e.clientX - menuRect.left;
+                    this.menuOffsetY = e.clientY - menuRect.top;
+                    
+                    // Prevent text selection during drag
+                    e.preventDefault();
+                });
+                
+                // Mouse move event to move the menu
+                document.addEventListener('mousemove', (e) => {
+                    if (!this.isDraggingMenu) return;
+                    
+                    // Calculate new position
+                    const x = e.clientX - this.menuOffsetX;
+                    const y = e.clientY - this.menuOffsetY;
+                    
+                    // Apply new position
+                    menu.style.left = `${x}px`;
+                    menu.style.top = `${y}px`;
+                });
+                
+                // Mouse up event to stop the drag
+                document.addEventListener('mouseup', () => {
+                    this.isDraggingMenu = false;
+                });
+            },
+            
+            // Show node menu when a node is clicked
+            showNodeMenu(d) {
+                // Stop event propagation to prevent immediate closing
+                d3.event.stopPropagation();
+                
+                // Store the current node
+                this.currentNode = d;
+                
+                // Get the node menu element
+                const menu = document.getElementById('node-menu');
+                
+                // Set the menu title
+                document.getElementById('node-menu-title').textContent = d.data.name;
+                
+                // Clear previous menu items
+                document.getElementById('node-menu-parent-items').innerHTML = '';
+                document.getElementById('node-menu-children-items').innerHTML = '';
+                
+                // Add parent item if this node has a parent
+                const parentSection = document.getElementById('node-menu-parent');
+                if (d.parent) {
+                    parentSection.style.display = 'block';
+                    const parentItem = this.createMenuItem(d.parent);
+                    document.getElementById('node-menu-parent-items').appendChild(parentItem);
+                } else {
+                    parentSection.style.display = 'none';
+                }
+                
+                // Add children items if this node has children
+                const childrenSection = document.getElementById('node-menu-children');
+                if (d.children && d.children.length > 0) {
+                    childrenSection.style.display = 'block';
+                    d.children.forEach(child => {
+                        const childItem = this.createMenuItem(child);
+                        document.getElementById('node-menu-children-items').appendChild(childItem);
+                    });
+                    
+                    // Adjust max height of children items container based on number of children
+                    const childrenItems = document.getElementById('node-menu-children-items');
+                    if (d.children.length > 10) {
+                        childrenItems.style.maxHeight = '300px';
+                    } else if (d.children.length > 5) {
+                        childrenItems.style.maxHeight = '200px';
+                    } else {
+                        childrenItems.style.maxHeight = '';
+                    }
+                } else {
+                    childrenSection.style.display = 'none';
+                }
+                
+                // Position the menu next to the node, accounting for zoom and transform
+                const svgRect = svg.node().getBoundingClientRect();
+                
+                // Get the current transform values
+                const transform = d3.zoomTransform(svg.node());
+                
+                // Calculate the actual position of the node in screen coordinates
+                const nodeScreenX = transform.x + (d.y * transform.k) + Config.margin.left;
+                const nodeScreenY = transform.y + (d.x * transform.k) + Config.margin.top;
+                
+                // Position the menu to the right of the node with a small offset
+                const menuX = nodeScreenX + (20 * transform.k); // 20px to the right, scaled by zoom
+                const menuY = nodeScreenY - (10 * transform.k); // 10px above, scaled by zoom
+                
+                // Ensure the menu stays within the viewport
+                const menuWidth = menu.offsetWidth || 200; // Default to 200 if not yet rendered
+                const menuHeight = menu.offsetHeight || 300; // Default to 300 if not yet rendered
+                
+                // Adjust position if menu would go off-screen
+                const finalX = Math.min(menuX, window.innerWidth - menuWidth - 10);
+                const finalY = Math.min(Math.max(10, menuY), window.innerHeight - menuHeight - 10);
+                
+                menu.style.left = `${finalX}px`;
+                menu.style.top = `${finalY}px`;
+                
+                // Set a reasonable size for the menu based on content
+                if (d.children && d.children.length > 15) {
+                    menu.style.width = '250px';
+                    menu.style.height = '400px';
+                } else if (d.children && d.children.length > 5) {
+                    menu.style.width = '220px';
+                    menu.style.height = '350px';
+                } else {
+                    menu.style.width = '200px';
+                    menu.style.height = '';
+                }
+                
+                // Show the menu
+                menu.style.display = 'flex';
+                
+                // Add a click handler to the document to close the menu when clicking outside
+                setTimeout(() => {
+                    document.addEventListener('click', this.closeNodeMenuOnClickOutside.bind(this));
+                }, 0);
+            },
+            
+            // Create a menu item for a node
+            createMenuItem(node) {
+                const item = document.createElement('div');
+                item.className = 'node-menu-item';
+                
+                // Add color indicator based on method
+                const colorIndicator = document.createElement('div');
+                colorIndicator.className = 'node-menu-item-color';
+                
+                // Set color based on method or node type
+                if (node.data.methods && node.data.methods.length > 0) {
+                    const method = node.data.methods[0];
+                    switch (method) {
+                        case 'GET': 
+                            colorIndicator.style.backgroundColor = '#a8e6b5';
+                            colorIndicator.style.borderColor = '#28a745';
+                            break;
+                        case 'POST': 
+                            colorIndicator.style.backgroundColor = '#a8c9ff';
+                            colorIndicator.style.borderColor = '#007bff';
+                            break;
+                        case 'PUT': 
+                            colorIndicator.style.backgroundColor = '#ffe7a8';
+                            colorIndicator.style.borderColor = '#ffc107';
+                            break;
+                        case 'DELETE': 
+                            colorIndicator.style.backgroundColor = '#ffb3b9';
+                            colorIndicator.style.borderColor = '#dc3545';
+                            break;
+                        case 'PATCH': 
+                            colorIndicator.style.backgroundColor = '#a8e1e6';
+                            colorIndicator.style.borderColor = '#17a2b8';
+                            break;
+                        default: 
+                            colorIndicator.style.backgroundColor = '#d1d1d1';
+                            colorIndicator.style.borderColor = '#6c757d';
+                    }
+                } else if (node.depth === 0) {
+                    colorIndicator.style.backgroundColor = '#b0b0b0';
+                    colorIndicator.style.borderColor = '#343a40';
+                } else {
+                    colorIndicator.style.backgroundColor = '#d1d1d1';
+                    colorIndicator.style.borderColor = '#6c757d';
+                }
+                
+                item.appendChild(colorIndicator);
+                
+                // Add node name
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = node.data.name;
+                item.appendChild(nameSpan);
+                
+                // Add click handler to navigate to the node
+                item.addEventListener('click', () => {
+                    this.navigateToNode(node);
+                });
+                
+                return item;
+            },
+            
+            // Navigate to a node by centering and highlighting it
+            navigateToNode(node) {
+                // Close the menu
+                this.closeNodeMenu();
+                
+                // Calculate the position to center on the node
+                const scale = Math.min(2, Math.max(0.5, State.scale)); // Keep scale between 0.5 and 2
+                const x = -node.y * scale + Config.width / 2;
+                const y = -node.x * scale + Config.height / 2;
+                
+                // Animate transition to the node
+                svg.transition()
+                    .duration(750)
+                    .call(
+                        zoom.transform,
+                        d3.zoomIdentity
+                            .translate(x, y)
+                            .scale(scale)
+                    );
+                
+                // Highlight the node briefly
+                const nodeElement = g.selectAll(".node").filter(d => d === node);
+                const circle = nodeElement.select("circle");
+                
+                // Store original styles
+                const originalFill = circle.style("fill");
+                const originalStroke = circle.style("stroke");
+                
+                // Flash effect
+                circle.transition()
+                    .duration(200)
+                    .style("fill", "#fff")
+                    .style("stroke", "#fff")
+                    .attr("r", 15)
+                    .transition()
+                    .duration(200)
+                    .style("fill", originalFill)
+                    .style("stroke", originalStroke)
+                    .attr("r", 10);
+            },
+            
+            // Close the node menu
+            closeNodeMenu() {
+                document.getElementById('node-menu').style.display = 'none';
+                document.removeEventListener('click', this.closeNodeMenuOnClickOutside.bind(this));
+                this.currentNode = null;
+            },
+            
+            // Close the node menu when clicking outside
+            closeNodeMenuOnClickOutside(event) {
+                const menu = document.getElementById('node-menu');
+                if (!menu.contains(event.target)) {
+                    this.closeNodeMenu();
+                }
+            }
+        };
+
+        /**
+         * RouteProcessor Module - Handles route data organization
+         */
+        const RouteProcessor = {
+        // Organize routes into a hierarchical structure
+            organizeRoutes(routes) {
+            console.log('Organizing routes:', routes);
+                
+            const routeTree = {
+                name: 'API',
+                children: []
+            };
+            
+            // Group routes by path to combine methods
+            const routesByPath = {};
+                
+            // Process each route and organize into a tree
+            routes.forEach(route => {
+                console.log('Processing route:', route);
+                
+                // Add to routes by path for method grouping
+                if (!routesByPath[route.path]) {
+                    routesByPath[route.path] = {
+                        path: route.path,
+                        methods: []
+                    };
+                }
+                
+                // Add methods if they exist
+                if (route.methods && route.methods.length > 0) {
+                    console.log(`Route ${route.path} has methods:`, route.methods);
+                    route.methods.forEach(method => {
+                        if (!routesByPath[route.path].methods.includes(method)) {
+                            routesByPath[route.path].methods.push(method);
+                        }
+                    });
+                } else {
+                    console.warn(`Route ${route.path} has no methods`);
+                }
+            });
+            
+            console.log('Routes grouped by path:', routesByPath);
+            
+            // Now build the tree from the grouped routes
+            Object.values(routesByPath).forEach(route => {
+                // Split the path into segments
+                const segments = route.path.split('/').filter(segment => segment);
+                
+                // Start from the root
+                let currentNode = routeTree;
+                let currentPath = '';
+                
+                // Process each segment
+                segments.forEach((segment, index) => {
+                    currentPath += '/' + segment;
+                    
+                    // Check if this segment already exists as a child
+                    let childNode = currentNode.children.find(child => child.path === currentPath);
+                    
+                    // If not, create it
+                    if (!childNode) {
+                        childNode = {
+                            name: segment,
+                            path: currentPath,
+                            children: [],
+                            methods: []
+                        };
+                        currentNode.children.push(childNode);
+                    }
+                    
+                    // If this is the last segment, add methods
+                    if (index === segments.length - 1 && route.methods && route.methods.length > 0) {
+                        childNode.methods = route.methods;
+                        console.log(`Added methods to node ${childNode.name}:`, childNode.methods);
+                    }
+                    
+                    // Move to this node for the next iteration
+                    currentNode = childNode;
+                });
+            });
+                
+            console.log('Final route tree:', routeTree);
+            return routeTree;
+            },
+            
+            // Get the maximum depth of the tree
+            getMaxDepth(node, currentDepth = 0) {
+                if (!node.children || node.children.length === 0) {
+                    return currentDepth;
+                }
+                
+                let maxChildDepth = currentDepth;
+                node.children.forEach(child => {
+                    const childDepth = this.getMaxDepth(child, currentDepth + 1);
+                    maxChildDepth = Math.max(maxChildDepth, childDepth);
+                });
+                
+                return maxChildDepth;
+            }
+        };
+
+        /**
+         * RouteRenderer Module - Handles rendering routes
+         */
+        const RouteRenderer = {
+        // Render the routes data using D3.js tree layout
+            renderRoutes(routesData) {
+            // Clear existing content
+            g.selectAll("*").remove();
+            
+            // Constants for layout
+            const NODE_SIZE = 30; // Approximate node size including text
+            const MIN_VERTICAL_SPACING = 60; // Minimum vertical spacing between nodes
+            
+            // Organize routes into a hierarchical structure
+                const routeTree = RouteProcessor.organizeRoutes(routesData);
+            
+            // Calculate horizontal spacing based on the depth of the tree
+                const maxDepth = RouteProcessor.getMaxDepth(routeTree);
+                const HORIZONTAL_SPACING = Math.max(300, Config.width / (maxDepth + 1));
+            
+            // Create a tree layout with tripled vertical spacing
+            const treeLayout = d3.tree()
+                    .size([Config.height * 3, Config.width - 160])  // Triple the height for more vertical spacing
+                .separation((a, b) => {
+                    // Increase separation between nodes
+                    return (a.parent == b.parent ? 3 : 4);
+                })
+                .nodeSize([NODE_SIZE, HORIZONTAL_SPACING]); // Set fixed node size with increased horizontal spacing
+            
+            // Create the root node hierarchy
+            const root = d3.hierarchy(routeTree);
+            
+            // Sort children by complexity (number of descendants)
+            // This will place smaller trees at the top and larger trees at the bottom
+            root.sort((a, b) => {
+                const aSize = a.descendants().length;
+                const bSize = b.descendants().length;
+                return aSize - bSize;
+            });
+            
+            // Assign the data to a hierarchy using parent-child relationships
+            let nodes = treeLayout(root);
+            
+            // Apply collision resolution
+                nodes = this.resolveCollisions(nodes, MIN_VERTICAL_SPACING);
+            
+            // Add links between the nodes with improved path generation
+            const link = g.selectAll(".link")
+                .data(nodes.descendants().slice(1))
+                .enter().append("path")
+                .attr("class", "link")
+                .attr("d", d => {
+                    // Use different curve styles based on the vertical distance
+                    const fromX = d.parent.y;
+                    const fromY = d.parent.x;
+                    const toX = d.y;
+                    const toY = d.x;
+                    const dx = toX - fromX;
+                    const dy = toY - fromY;
+                    
+                    // For nodes far apart vertically, use an S-curve with more pronounced curve
+                    if (Math.abs(dy) > 100) {
+                        const controlX1 = fromX + dx * 0.4;
+                        const controlY1 = fromY + dy * 0.1;
+                        const controlX2 = fromX + dx * 0.6;
+                        const controlY2 = toY - dy * 0.1;
+                        return `M${fromX},${fromY} C${controlX1},${controlY1} ${controlX2},${controlY2} ${toX},${toY}`;
+                    } else {
+                        // For nodes close vertically, use a simple curve
+                        return `M${fromX},${fromY}
+                                C${(fromX + toX) / 2},${fromY}
+                                 ${(fromX + toX) / 2},${toY}
+                                 ${toX},${toY}`;
+                    }
+                })
+                .style("stroke", d => {
+                    if (d.data.methods && d.data.methods.length > 0) {
+                        const method = d.data.methods[0];
+                        switch (method) {
+                            case 'GET': return '#28a745';
+                            case 'POST': return '#007bff';
+                            case 'PUT': return '#ffc107';
+                            case 'DELETE': return '#dc3545';
+                            case 'PATCH': return '#17a2b8';
+                            default: return '#6c757d';
+                        }
+                    }
+                    return '#6c757d';
+                });
+            
+            // Add each node as a group
+            const node = g.selectAll(".node")
+                .data(nodes.descendants())
+                .enter().append("g")
+                .attr("class", d => {
+                    let nodeClass = "node";
+                    
+                    if (d.children) {
+                        nodeClass += " node--internal";
+                    } else {
+                        nodeClass += " node--leaf";
+                    }
+                    
+                    // Add method class for styling if the node has methods
+                    if (d.data.methods && d.data.methods.length > 0) {
+                        nodeClass += ` method-${d.data.methods[0]}`;
+                    } else if (d.depth === 0) {
+                        nodeClass += " root-node";
+                    } else if (d.children && d.children.length > 0) {
+                        nodeClass += " parent-node";
+                    } else {
+                        nodeClass += " parent-node"; // Default to parent-node styling
+                    }
+                    
+                    return nodeClass;
+                })
+                .attr("transform", d => `translate(${d.y},${d.x})`)
+                    .on("click", NodeMenu.showNodeMenu.bind(NodeMenu)); // Add click handler for node menu
+            
+            // Add circles to the nodes
+            node.append("circle")
+                .attr("r", 10)
+                .style("fill", d => {
+                    // Apply fill color directly based on method
+                    if (d.data.methods && d.data.methods.length > 0) {
+                        const method = d.data.methods[0];
+                        switch (method) {
+                            case 'GET': return '#a8e6b5'; // Solid light green
+                            case 'POST': return '#a8c9ff'; // Solid light blue
+                            case 'PUT': return '#ffe7a8'; // Solid light yellow
+                            case 'DELETE': return '#ffb3b9'; // Solid light red
+                            case 'PATCH': return '#a8e1e6'; // Solid light teal
+                            default: return '#d1d1d1'; // Solid light gray
+                        }
+                    } else if (d.depth === 0) {
+                        return '#b0b0b0'; // Root node - solid medium gray
+                    } else if (d.children && d.children.length > 0) {
+                        return '#d1d1d1'; // Parent node - solid light gray
+                    } else {
+                        return '#d1d1d1'; // Default - solid light gray
+                    }
+                })
+                .style("stroke", d => {
+                    // Apply stroke color directly based on method
+                    if (d.data.methods && d.data.methods.length > 0) {
+                        const method = d.data.methods[0];
+                        switch (method) {
+                            case 'GET': return '#28a745';
+                            case 'POST': return '#007bff';
+                            case 'PUT': return '#ffc107';
+                            case 'DELETE': return '#dc3545';
+                            case 'PATCH': return '#17a2b8';
+                            default: return '#6c757d';
+                        }
+                    } else if (d.depth === 0) {
+                        return '#343a40'; // Root node
+                    } else if (d.children && d.children.length > 0) {
+                        return '#6c757d'; // Parent node
+                    } else {
+                        return '#6c757d'; // Default
+                    }
+                })
+                .style("stroke-width", "3px");
+            
+            // Add labels to the nodes
+            node.append("text")
+                .attr("dy", ".35em")
+                .attr("x", d => d.children ? -15 : 15)
+                .style("text-anchor", d => d.children ? "end" : "start")
+                .text(d => d.data.name);
+            
+            // Add method labels for all nodes with methods
+            node.filter(d => d.data.methods && d.data.methods.length > 0)
+                .each(function(d) {
+                    const nodeGroup = d3.select(this);
+                    const isParent = d.children && d.children.length > 0;
+                    const xPosition = isParent ? -15 : 15;
+                    const textAnchor = isParent ? "end" : "start";
+                    
+                    // Create a group for method labels
+                    const methodLabels = nodeGroup.append("g")
+                        .attr("class", "method-labels");
+                    
+                    // Add each method as a separate colored text element
+                    d.data.methods.forEach((method, i) => {
+                        // Get color for this method
+                        let methodColor;
+                        switch (method) {
+                            case 'GET': methodColor = '#28a745'; break;
+                            case 'POST': methodColor = '#007bff'; break;
+                            case 'PUT': methodColor = '#ffc107'; break;
+                            case 'DELETE': methodColor = '#dc3545'; break;
+                            case 'PATCH': methodColor = '#17a2b8'; break;
+                            default: methodColor = '#6c757d';
+                        }
+                        
+                        // Calculate position (staggered if multiple methods)
+                        const yOffset = 1.75 + (i * 1.2);
+                        
+                        // Add the method text
+                        methodLabels.append("text")
+                            .attr("dy", `${yOffset}em`)
+                            .attr("x", xPosition)
+                            .style("text-anchor", textAnchor)
+                            .style("font-size", "12px")
+                            .style("fill", methodColor)
+                            .text(method);
+                    });
+                });
+            },
+            
+            // Function to check if two nodes are too close
+            areNodesTooClose(node1, node2, minDistance) {
+                // Only check nodes at the same depth (same column)
+                if (node1.depth !== node2.depth) return false;
+                
+                const verticalDistance = Math.abs(node1.x - node2.x);
+                return verticalDistance < minDistance;
+            },
+            
+            // Function to resolve collisions
+            resolveCollisions(nodes, minDistance) {
+                // Group nodes by depth
+                const nodesByDepth = {};
+                nodes.descendants().forEach(node => {
+                    if (!nodesByDepth[node.depth]) {
+                        nodesByDepth[node.depth] = [];
+                    }
+                    nodesByDepth[node.depth].push(node);
+                });
+                
+                // Sort nodes at each depth by x position
+                Object.values(nodesByDepth).forEach(depthNodes => {
+                    depthNodes.sort((a, b) => a.x - b.x);
+                });
+                
+                // Resolve collisions at each depth
+                Object.values(nodesByDepth).forEach(depthNodes => {
+                    for (let i = 1; i < depthNodes.length; i++) {
+                        const currentNode = depthNodes[i];
+                        const prevNode = depthNodes[i - 1];
+                        
+                        const actualDistance = currentNode.x - prevNode.x;
+                        
+                        if (actualDistance < minDistance) {
+                            // Move current node down
+                            const offset = minDistance - actualDistance;
+                            
+                            // Move this node and all its descendants
+                            const nodesToMove = [currentNode, ...currentNode.descendants()];
+                            nodesToMove.forEach(n => {
+                                n.x += offset;
+                            });
+                            
+                            // Also move all subsequent siblings and their descendants
+                            for (let j = i + 1; j < depthNodes.length; j++) {
+                                const siblingNode = depthNodes[j];
+                                const siblingAndDescendants = [siblingNode, ...siblingNode.descendants()];
+                                siblingAndDescendants.forEach(n => {
+                                    n.x += offset;
+                                });
+                            }
+                        }
+                    }
+                });
+                
+                return nodes;
+            },
+            
+            // Render with test data
+            renderWithTestData() {
+            console.log('Rendering with test data');
+            const testData = [
+                { path: '/api/users', methods: ['GET', 'POST'] },
+                { path: '/api/users/:id', methods: ['GET', 'PUT', 'DELETE'] },
+                { path: '/api/posts', methods: ['GET', 'POST'] },
+                { path: '/api/posts/:id', methods: ['GET', 'PUT', 'DELETE'] },
+                { path: '/api/comments', methods: ['GET', 'POST'] },
+                { path: '/api/auth/login', methods: ['POST'] },
+                { path: '/api/auth/register', methods: ['POST'] },
+                { path: '/api/profile', methods: ['GET', 'PATCH'] },
+                // Add routes from the provided data
+                { path: '/api/nutrition/meals/assign', methods: ['POST'] },
+                { path: '/api/users/workouts/assign', methods: ['POST'] },
+                { path: '/api/users/meals/assigned', methods: ['GET'] }
+            ];
+            
+            // Render the test data
+                this.renderRoutes(testData);
+        }
+        };
+        
+        /**
+         * RouteDataService Module - Handles fetching and processing route data
+         */
+        const RouteDataService = {
+        // Function to print route data to console for debugging
+            printData() {
+            // Get the current data
+            fetch('/express-routes-data')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('=== EXPRESS ROUTES DATA ===');
+                    console.log('Total routes:', data.length);
+                    console.log('Routes data:', data);
+                    
+                    // Group routes by path
+                    const routesByPath = {};
+                    data.forEach(route => {
+                        if (!routesByPath[route.path]) {
+                            routesByPath[route.path] = [];
+                        }
+                        routesByPath[route.path].push(route);
+                    });
+                    
+                    console.log('Routes grouped by path:', routesByPath);
+                    console.log('Number of unique paths:', Object.keys(routesByPath).length);
+                    
+                    // Print routes in a more readable format
+                    console.log('\n=== ROUTES LIST ===');
+                    data.forEach((route, index) => {
+                        const methods = route.methods && route.methods.length > 0 
+                            ? route.methods.join(', ') 
+                            : 'NO METHOD';
+                        console.log(`${index + 1}. [${methods}] ${route.path}`);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching routes data:', error);
+                });
+            },
+        
+            // Fetch and process route data
+            fetchRouteData() {
+        // Fetch routes data from the server
+        fetch('/express-routes-data')
+            .then(response => response.json())
+            .then(data => {
+                // Check if the data has the expected structure
+                if (Array.isArray(data)) {
+                    // Check if we have 'method' instead of 'methods'
+                    if (data.length > 0 && data[0].method && !data[0].methods) {
+                        // Convert method to methods array
+                        data = data.map(route => {
+                            if (route.method) {
+                                return {
+                                    ...route,
+                                    methods: [route.method.toUpperCase()]
+                                };
+                            }
+                            return route;
+                        });
+                    }
+                    // Check if methods exist and are in the expected format
+                    else if (data.length > 0 && !data[0].methods) {
+                        // Add a default GET method if none exists
+                        data = data.map(route => {
+                            if (!route.methods || !Array.isArray(route.methods) || route.methods.length === 0) {
+                                return { ...route, methods: ['GET'] };
+                            }
+                            return route;
+                        });
+                    } else if (data.length > 0 && !Array.isArray(data[0].methods)) {
+                        // Convert methods to array if it's not already
+                        data = data.map(route => {
+                            if (route.methods && !Array.isArray(route.methods)) {
+                                return { ...route, methods: [route.methods] };
+                            }
+                            return route;
+                        });
+                    }
+                    
+                            RouteRenderer.renderRoutes(data);
+                } else {
+                    console.error('Data is not an array. Using test data instead.');
+                            RouteRenderer.renderWithTestData();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching routes data:', error);
+                
+                // Show error message
+                g.append("text")
+                            .attr("x", Config.width / 2)
+                            .attr("y", Config.height / 2)
+                    .attr("text-anchor", "middle")
+                    .style("fill", "#dc3545")
+                    .style("font-size", "18px")
+                    .text(`Error Loading Routes: ${error.message}`);
+                
+                // If there's an error, render with test data
+                        RouteRenderer.renderWithTestData();
+                    });
+            }
+        };
+
+        /**
+         * Application Module - Handles application initialization and lifecycle
+         */
+        const Application = {
+            // Initialize the application
+            init() {
+                // Initialize the diagram
+                DiagramCore.init();
+                
+                // Fetch and render route data
+                RouteDataService.fetchRouteData();
+            }
+        };
+        
+        // Start the application
+        Application.init();
+    </script>
+</body>
+</html> 
