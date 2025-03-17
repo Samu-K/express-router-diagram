@@ -1,8 +1,8 @@
-import { describe, it, beforeAll, afterAll } from "vitest";
 import { spawn } from "node:child_process";
-import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import express from "express";
+import { afterAll, beforeAll, describe, it } from "vitest";
 import routerDiagram from "../../src/index.js";
 
 // Get the directory name in ESM

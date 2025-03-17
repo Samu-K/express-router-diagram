@@ -1,6 +1,6 @@
+import path from "node:path";
 // @ts-check
 import { defineConfig, devices } from "@playwright/test";
-import path from "node:path";
 
 /**
  * Read environment variables from file.

@@ -20,7 +20,8 @@
     "fmt": "biome format --write .",
     "fmt:check": "biome check --formatter-enabled=true --linter-enabled=false .",
     "lint": "biome lint .",
-    "lint:fix": "biome lint --write ."
+    "lint:fix": "biome lint --write . && biome check --formatter-enabled=false --linter-enabled=false --organize-imports-enabled=true --write .",
+    "organize-imports": "biome check --formatter-enabled=false --linter-enabled=false --organize-imports-enabled=true --write ."
   },
   "keywords": [
     "express",

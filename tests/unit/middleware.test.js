@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import express from "express";
 import request from "supertest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import routerDiagram, { printAppRoutes } from "../../src/index";
 
 describe("routerDiagram middleware", () => {

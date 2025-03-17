@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import express from "express";
+import { beforeEach, describe, expect, it } from "vitest";
 import { extractRoutesFromApp } from "../../src/index";
 
 describe("extractRoutesFromApp", () => {

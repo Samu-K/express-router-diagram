@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // All vi.mock calls must be at the top level, before any other code
 vi.mock("fs", () => ({
@@ -34,9 +34,9 @@ vi.mock("../../src/index", () => ({
   printAppRoutes: vi.fn()
 }));
 
+import express from "express";
 // Import the mocked modules
 import { printAppRoutes } from "../../src/index";
-import express from "express";
 
 // Store original argv
 const originalArgv = process.argv;

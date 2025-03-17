@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 // Individual tests with setup in each test
 test("API root loaded", async ({ page }) => {
