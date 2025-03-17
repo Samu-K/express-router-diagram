@@ -8,11 +8,11 @@
   <a href="https://www.npmjs.com/package/express-router-diagram">
     <img src="https://img.shields.io/npm/v/express-router-diagram?style=flat-square&label=npm" alt="NPM Version" />
   </a>
-  <a href="https://github.com/your-username/express-router-diagram/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/your-username/express-router-diagram/ci.yml?branch=main&style=flat-square" alt="CI Status" />
+  <a href="https://github.com/Samu-K/express-router-diagram/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/Samu-K/express-router-diagram/ci.yml?branch=main&style=flat-square" alt="CI Status" />
   </a>
-  <a href="https://github.com/your-username/express-router-diagram/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/your-username/express-router-diagram?style=flat-square" alt="License" />
+  <a href="https://github.com/Samu-K/express-router-diagram/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Samu-K/express-router-diagram?style=flat-square" alt="License" />
   </a>
 </p>
 
