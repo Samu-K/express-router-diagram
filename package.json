@@ -18,6 +18,7 @@
     "web": "node src/cli.js --app src/example.js --server 3000",
     "prepublishOnly": "npm test",
     "fmt": "biome format --write .",
+    "fmt:check": "biome check --formatter-enabled=true --linter-enabled=false .",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write ."
   },
