@@ -36,66 +36,41 @@ const hierarchyUtils = {
       // Start at the root of the hierarchy
       let current = hierarchy;
 
-      // Build the hierarchy
+      // Process each segment to build the hierarchy
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
-        const isLastSegment = i === segments.length - 1;
 
-        // Handle path parameters (e.g., :userId)
-        const isParam = segment.startsWith(":");
+        // Make sure the current node exists
+        if (!current[segment]) {
+          current[segment] = {};
+        }
 
-        if (isLastSegment) {
-          // This is the last segment, add the route here
-          if (!current[segment]) {
-            current[segment] = [];
+        // If this is the last segment, add route information
+        if (i === segments.length - 1) {
+          // Add routes array if it doesn't exist
+          if (!current[segment]._routes) {
+            current[segment]._routes = [];
           }
 
-          // Ensure it's an array
-          if (!Array.isArray(current[segment])) {
-            // If it's an object with nested routes, add a routes property
-            if (typeof current[segment] === "object") {
-              if (!current[segment].routes) {
-                current[segment].routes = [];
+          // Add this route to the routes array
+          current[segment]._routes.push(route);
+
+          // Also store methods for easier access
+          if (!current[segment]._methods) {
+            current[segment]._methods = [];
+          }
+
+          // Add each method if not already present
+          if (route.methods && Array.isArray(route.methods)) {
+            route.methods.forEach((method) => {
+              if (!current[segment]._methods.includes(method)) {
+                current[segment]._methods.push(method);
               }
-              current[segment].routes.push(route);
-            } else {
-              // Convert to array if it's not already
-              current[segment] = [route];
-            }
-          } else {
-            // It's already an array, just push the route
-            current[segment].push(route);
+            });
           }
         } else {
-          // This is not the last segment, create a new level in the hierarchy
-          if (!current[segment]) {
-            current[segment] = {};
-          }
-
-          // Special handling for path parameters
-          if (isParam) {
-            // For path parameters, we need to create an array of objects
-            // Each object represents a possible value for the parameter
-            if (!Array.isArray(current[segment])) {
-              // Convert to array if it's not already
-              const temp = current[segment];
-              current[segment] = [{}];
-
-              // If there were existing properties, copy them to the first item in the array
-              if (typeof temp === "object" && Object.keys(temp).length > 0) {
-                current[segment][0] = { ...temp };
-              }
-            } else if (current[segment].length === 0) {
-              // If it's an empty array, add an object
-              current[segment].push({});
-            }
-
-            // Move to the first item in the array
-            current = current[segment][0];
-          } else {
-            // Move to the next level in the hierarchy
-            current = current[segment];
-          }
+          // Move to the next level in the hierarchy
+          current = current[segment];
         }
       }
     });
@@ -165,119 +140,36 @@ const hierarchyUtils = {
     // Get the prefix for this line
     const linePrefix = this.getLinePrefix(level, isLast);
 
-    // Handle different types of values
-    if (Array.isArray(value)) {
-      // This could be an array of routes or a mixed array
-
-      // Check if this is an array of route objects
-      const routeItems = value.filter((item) => item && item.path && item.methods);
-
-      if (routeItems.length > 0) {
-        // Extract methods from routes
-        const methods = new Set();
-        routeItems.forEach((route) => {
-          if (route.methods && Array.isArray(route.methods)) {
-            route.methods.forEach((method) => methods.add(method));
-          }
-        });
-
-        // Print the key with methods
-        if (methods.size > 0) {
-          const methodsArray = Array.from(methods).sort();
-          if (useColors) {
-            result += `${linePrefix}${key} [${colorUtils.colorizeMethodsString(methodsArray)}]\n`;
-          } else {
-            result += `${linePrefix}${key} [${methodsArray.join(", ")}]\n`;
-          }
-        } else {
-          result += `${linePrefix}${key}\n`;
-        }
+    // Check if this node has methods (from the _methods property)
+    if (value && value._methods && Array.isArray(value._methods) && value._methods.length > 0) {
+      // Print node with methods
+      const methods = value._methods.sort();
+      if (useColors) {
+        result += `${linePrefix}${key} [${colorUtils.colorizeMethodsString(methods)}]\n`;
       } else {
-        // This is a mixed array with both objects and routes
-        result += `${linePrefix}${key}\n`;
-
-        // Get all string keys from the array
-        const childKeys = [];
-        value.forEach((item) => {
-          if (item && typeof item === "object") {
-            Object.keys(item).forEach((itemKey) => {
-              if (
-                typeof itemKey === "string" &&
-                !itemKey.startsWith("_") &&
-                itemKey !== "path" &&
-                itemKey !== "methods" &&
-                itemKey !== "middleware" &&
-                !childKeys.includes(itemKey)
-              ) {
-                childKeys.push(itemKey);
-              }
-            });
-          }
-        });
-
-        // Process each child key
-        childKeys.forEach((childKey, childIndex) => {
-          const isLastChild = childIndex === childKeys.length - 1;
-          const childPrefix = this.getChildPrefix(level, isLastChild);
-
-          // Find the item with this key
-          const childItem = value.find((item) => item && item[childKey]);
-          if (childItem) {
-            result += this.processHierarchyNode(
-              childKey,
-              childItem[childKey],
-              level + 1,
-              isLastChild,
-              {
-                ...options,
-                childPrefix
-              }
-            );
-          }
-        });
-      }
-    } else if (typeof value === "object" && value !== null) {
-      // Check if it's a route object
-      if (value.path && value.methods) {
-        // This is a route object
-        const methods = Array.isArray(value.methods) ? value.methods : [];
-        if (methods.length > 0) {
-          if (useColors) {
-            result += `${linePrefix}${key} [${colorUtils.colorizeMethodsString(methods)}]\n`;
-          } else {
-            result += `${linePrefix}${key} [${methods.join(", ")}]\n`;
-          }
-        } else {
-          result += `${linePrefix}${key}\n`;
-        }
-      } else {
-        // This is a branch node
-        result += `${linePrefix}${key}\n`;
-
-        // Get child keys
-        const childKeys = Object.keys(value).filter(
-          (childKey) =>
-            typeof childKey === "string" &&
-            !childKey.startsWith("_") &&
-            childKey !== "path" &&
-            childKey !== "methods" &&
-            childKey !== "middleware"
-        );
-
-        // Process each child
-        childKeys.forEach((childKey, childIndex) => {
-          const isLastChild = childIndex === childKeys.length - 1;
-          const childPrefix = this.getChildPrefix(level, isLastChild);
-
-          result += this.processHierarchyNode(childKey, value[childKey], level + 1, isLastChild, {
-            ...options,
-            childPrefix
-          });
-        });
+        result += `${linePrefix}${key} [${methods.join(", ")}]\n`;
       }
     } else {
-      // Just print the key for other types
+      // Print node without methods
       result += `${linePrefix}${key}\n`;
+    }
+
+    // Process child nodes (skip special properties starting with _)
+    if (value && typeof value === "object") {
+      const childKeys = Object.keys(value)
+        .filter((k) => !k.startsWith("_"))
+        .sort();
+
+      childKeys.forEach((childKey, index) => {
+        const childIsLast = index === childKeys.length - 1;
+        result += this.processHierarchyNode(
+          childKey,
+          value[childKey],
+          level + 1,
+          childIsLast,
+          options
+        );
+      });
     }
 
     return result;
@@ -293,65 +185,20 @@ const hierarchyUtils = {
   printHierarchyToString(hierarchy, level = 0, options = {}) {
     let result = "";
 
-    // Extract useColors option
-    const useColors = options.useColors === true;
-
     // Handle empty hierarchy
-    if (!hierarchy) {
-      return result;
+    if (!hierarchy || Object.keys(hierarchy).length === 0) {
+      return "No routes found\n";
     }
 
-    // Special case for the root level (api)
-    if (level === 0 && hierarchy.api) {
-      // Start with the api key
-      result += "api\n";
+    // Get all keys except special ones (starting with _)
+    const keys = Object.keys(hierarchy)
+      .filter((k) => !k.startsWith("_"))
+      .sort();
 
-      // Process the api contents
-      const apiContents = hierarchy.api;
-
-      // First, handle any route objects directly in the array
-      if (Array.isArray(apiContents)) {
-        const routeItems = apiContents.filter((item) => item && item.path && item.methods);
-        if (routeItems.length > 0) {
-          // Pass the useColors option to processHierarchyNode
-          result += this.processHierarchyNode("", routeItems, 1, true, {
-            useColors
-          });
-        }
-      } else if (typeof apiContents === "object") {
-        // Get all keys except special ones
-        const keys = Object.keys(apiContents).filter(
-          (key) => key !== "_routes" && key !== "_methods"
-        );
-
-        // Process each key
-        keys.forEach((key, index) => {
-          const isLast = index === keys.length - 1;
-          // Pass the useColors option to processHierarchyNode
-          result += this.processHierarchyNode(key, apiContents[key], 1, isLast, { useColors });
-        });
-      }
-
-      return result;
-    }
-
-    // For non-root levels, process normally
-    const keys = Object.keys(hierarchy).filter(
-      (key) =>
-        typeof key === "string" &&
-        !key.startsWith("_") &&
-        key !== "path" &&
-        key !== "methods" &&
-        key !== "middleware"
-    );
-
+    // Process each key
     keys.forEach((key, index) => {
       const isLast = index === keys.length - 1;
-      const value = hierarchy[key];
-
-      result += this.processHierarchyNode(key, value, level, isLast, {
-        useColors
-      });
+      result += this.processHierarchyNode(key, hierarchy[key], level, isLast, options);
     });
 
     return result;

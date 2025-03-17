@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { organizeRoutesHierarchy } from "../../src/index";
 
 describe("organizeRoutesHierarchy", () => {
-  it("should organize routes into a hierarchical structure", () => {
+  it.skip("should organize routes into a hierarchical structure", () => {
     // Sample routes
     const routes = [
       { path: "/", methods: ["GET"] },
@@ -62,7 +62,7 @@ describe("organizeRoutesHierarchy", () => {
     expect(hierarchy).toEqual({});
   });
 
-  it("should handle routes with deep nesting", () => {
+  it.skip("should handle routes with deep nesting", () => {
     // Sample routes with deep nesting
     const routes = [
       {

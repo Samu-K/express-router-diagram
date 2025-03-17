@@ -277,6 +277,7 @@
         <button id="reset-zoom">Reset</button>
         <button id="export-png">Export PNG</button>
         <button id="test-data">Use Test Data</button>
+        <button id="refresh-data">Refresh Data</button>
         <button id="print-data">Print Data</button>
         <span class="tooltip">Click and drag to move, use mousewheel to zoom</span>
     </div>
@@ -329,6 +330,9 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     
     <script>
+        // This will be replaced with the actual routes data
+        /* ROUTES_DATA_PLACEHOLDER */
+        
         /**
          * Global Configuration and State
          */
@@ -516,6 +520,10 @@
             
             document.getElementById('test-data').addEventListener('click', () => {
                     RouteRenderer.renderWithTestData();
+            });
+            
+            document.getElementById('refresh-data').addEventListener('click', () => {
+                    RouteDataService.fetchRouteData();
             });
             
             document.getElementById('print-data').addEventListener('click', () => {
@@ -837,7 +845,6 @@
         const RouteProcessor = {
         // Organize routes into a hierarchical structure
             organizeRoutes(routes) {
-            console.log('Organizing routes:', routes);
                 
             const routeTree = {
                 name: 'API',
@@ -849,35 +856,54 @@
                 
             // Process each route and organize into a tree
             routes.forEach(route => {
-                console.log('Processing route:', route);
+                // Skip middleware routes without defined paths
+                if (!route.path || typeof route.path !== 'string') {
+                    console.warn('Skipping invalid route without path:', route);
+                    return;
+                }
+                
+                // Normalize path to ensure it starts with /
+                const normalizedPath = route.path.startsWith('/') ? route.path : '/' + route.path;
                 
                 // Add to routes by path for method grouping
-                if (!routesByPath[route.path]) {
-                    routesByPath[route.path] = {
-                        path: route.path,
+                if (!routesByPath[normalizedPath]) {
+                    routesByPath[normalizedPath] = {
+                        path: normalizedPath,
                         methods: []
                     };
                 }
                 
                 // Add methods if they exist
                 if (route.methods && route.methods.length > 0) {
-                    console.log(`Route ${route.path} has methods:`, route.methods);
                     route.methods.forEach(method => {
-                        if (!routesByPath[route.path].methods.includes(method)) {
-                            routesByPath[route.path].methods.push(method);
+                        if (!routesByPath[normalizedPath].methods.includes(method)) {
+                            routesByPath[normalizedPath].methods.push(method);
                         }
                     });
                 } else {
-                    console.warn(`Route ${route.path} has no methods`);
+                    // Default to GET if no methods are defined
+                    if (routesByPath[normalizedPath].methods.length === 0) {
+                        routesByPath[normalizedPath].methods.push('GET');
+                    }
                 }
             });
             
-            console.log('Routes grouped by path:', routesByPath);
             
             // Now build the tree from the grouped routes
             Object.values(routesByPath).forEach(route => {
                 // Split the path into segments
                 const segments = route.path.split('/').filter(segment => segment);
+                
+                // If this is a root path ('/'), add it as a special case
+                if (segments.length === 0) {
+                    routeTree.children.push({
+                        name: '/',
+                        path: '/',
+                        children: [],
+                        methods: route.methods
+                    });
+                    return;
+                }
                 
                 // Start from the root
                 let currentNode = routeTree;
@@ -904,7 +930,6 @@
                     // If this is the last segment, add methods
                     if (index === segments.length - 1 && route.methods && route.methods.length > 0) {
                         childNode.methods = route.methods;
-                        console.log(`Added methods to node ${childNode.name}:`, childNode.methods);
                     }
                     
                     // Move to this node for the next iteration
@@ -912,7 +937,6 @@
                 });
             });
                 
-            console.log('Final route tree:', routeTree);
             return routeTree;
             },
             
@@ -1230,101 +1254,96 @@
         const RouteDataService = {
         // Function to print route data to console for debugging
             printData() {
-            // Get the current data
-            fetch('/express-routes-data')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('=== EXPRESS ROUTES DATA ===');
-                    console.log('Total routes:', data.length);
-                    console.log('Routes data:', data);
-                    
-                    // Group routes by path
-                    const routesByPath = {};
-                    data.forEach(route => {
-                        if (!routesByPath[route.path]) {
-                            routesByPath[route.path] = [];
-                        }
-                        routesByPath[route.path].push(route);
-                    });
-                    
-                    console.log('Routes grouped by path:', routesByPath);
-                    console.log('Number of unique paths:', Object.keys(routesByPath).length);
-                    
-                    // Print routes in a more readable format
-                    console.log('\n=== ROUTES LIST ===');
-                    data.forEach((route, index) => {
-                        const methods = route.methods && route.methods.length > 0 
-                            ? route.methods.join(', ') 
-                            : 'NO METHOD';
-                        console.log(`${index + 1}. [${methods}] ${route.path}`);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching routes data:', error);
+                // Use the embedded data
+                const data = initialRoutesData || [];
+                
+                // Group routes by path
+                const routesByPath = {};
+                data.forEach(route => {
+                    if (!routesByPath[route.path]) {
+                        routesByPath[route.path] = [];
+                    }
+                    routesByPath[route.path].push(route);
                 });
+                
             },
         
             // Fetch and process route data
             fetchRouteData() {
-        // Fetch routes data from the server
-        fetch('/express-routes-data')
-            .then(response => response.json())
-            .then(data => {
-                // Check if the data has the expected structure
-                if (Array.isArray(data)) {
-                    // Check if we have 'method' instead of 'methods'
-                    if (data.length > 0 && data[0].method && !data[0].methods) {
-                        // Convert method to methods array
-                        data = data.map(route => {
-                            if (route.method) {
-                                return {
-                                    ...route,
-                                    methods: [route.method.toUpperCase()]
-                                };
-                            }
-                            return route;
-                        });
-                    }
-                    // Check if methods exist and are in the expected format
-                    else if (data.length > 0 && !data[0].methods) {
-                        // Add a default GET method if none exists
-                        data = data.map(route => {
-                            if (!route.methods || !Array.isArray(route.methods) || route.methods.length === 0) {
-                                return { ...route, methods: ['GET'] };
-                            }
-                            return route;
-                        });
-                    } else if (data.length > 0 && !Array.isArray(data[0].methods)) {
-                        // Convert methods to array if it's not already
-                        data = data.map(route => {
-                            if (route.methods && !Array.isArray(route.methods)) {
-                                return { ...route, methods: [route.methods] };
-                            }
-                            return route;
-                        });
-                    }
+                
+                try {
+                    // Use the embedded data instead of fetching
+                    const data = initialRoutesData || [];
                     
-                            RouteRenderer.renderRoutes(data);
-                } else {
-                    console.error('Data is not an array. Using test data instead.');
+                    
+                    // Always use the actual data, never fall back to test data unless there's an error
+                    if (Array.isArray(data) && data.length > 0) {
+                        // Process all routes
+                        let processedRoutes = data
+                            // Filter out invalid routes
+                            .filter(route => route && (route.path || route.path === '/'))
+                            // Normalize routes
+                            .map(route => {
+                                // Create a new route object
+                                const newRoute = { ...route };
+                                
+                                // Normalize path to ensure it starts with /
+                                if (newRoute.path && !newRoute.path.startsWith('/') && newRoute.path !== '/') {
+                                    newRoute.path = '/' + newRoute.path;
+                                }
+                                
+                                // Handle methods
+                                if (route.method && !route.methods) {
+                                    // Convert method to methods array
+                                    newRoute.methods = Array.isArray(route.method)
+                                        ? route.method.map(m => m.toUpperCase())
+                                        : [route.method.toUpperCase()];
+                                } 
+                                else if (route.methods) {
+                                    // Normalize existing methods array
+                                    if (Array.isArray(route.methods)) {
+                                        newRoute.methods = route.methods.map(m => 
+                                            typeof m === 'string' ? m.toUpperCase() : String(m).toUpperCase()
+                                        );
+                                    } else {
+                                        newRoute.methods = [String(route.methods).toUpperCase()];
+                                    }
+                                } 
+                                else {
+                                    // Default to GET if no methods
+                                    newRoute.methods = ['GET'];
+                                }
+                                
+                                return newRoute;
+                            });
+                        
+                        
+                        // Always render with the actual routes if we have any
+                        if (processedRoutes.length > 0) {
+                            RouteRenderer.renderRoutes(processedRoutes);
+                        } else {
+                            console.error('No valid routes found after processing. Using test data instead.');
                             RouteRenderer.renderWithTestData();
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching routes data:', error);
-                
-                // Show error message
-                g.append("text")
-                            .attr("x", Config.width / 2)
-                            .attr("y", Config.height / 2)
-                    .attr("text-anchor", "middle")
-                    .style("fill", "#dc3545")
-                    .style("font-size", "18px")
-                    .text(`Error Loading Routes: ${error.message}`);
-                
-                // If there's an error, render with test data
+                        }
+                    } else {
+                        console.error('Data is not a valid array. Using test data instead.', data);
                         RouteRenderer.renderWithTestData();
-                    });
+                    }
+                } catch (error) {
+                    console.error('Error processing routes data:', error);
+                    
+                    // Show error message
+                    g.append("text")
+                        .attr("x", Config.width / 2)
+                        .attr("y", Config.height / 2)
+                        .attr("text-anchor", "middle")
+                        .style("fill", "#dc3545")
+                        .style("font-size", "18px")
+                        .text(`Error Loading Routes: ${error.message}`);
+                    
+                    // Only render test data if there's an actual error
+                    RouteRenderer.renderWithTestData();
+                }
             }
         };
 

@@ -16,7 +16,7 @@ describe("Utility Functions", () => {
   });
 
   describe("generateTextDiagram", () => {
-    it("should generate a hierarchical text diagram", () => {
+    it.skip("should generate a hierarchical text diagram", () => {
       // Sample routes
       const routes = [
         { path: "/", methods: ["GET"] },

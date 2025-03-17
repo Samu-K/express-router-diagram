@@ -55,8 +55,8 @@ const colorUtils = {
   },
 
   /**
-   * Colorize a method or list of methods
-   * @param {string|Array} methods - HTTP method or array of methods
+   * Colorize methods in a method string
+   * @param {string} methods - Method string (comma-separated)
    * @returns {string} Colorized method string
    */
   colorizeMethods(methods) {
@@ -74,18 +74,47 @@ const colorUtils = {
    * @returns {string} Colorized methods string
    */
   colorizeMethodsString(methods) {
+    if (!Array.isArray(methods)) {
+      // biome-ignore lint: Workaround to fix type error
+      methods = [methods];
+    }
+
     return methods
       .map((method) => {
-        const color = this.getMethodColor(method);
-        return `${color}${method}${this.colors.reset}`;
+        // Make sure method is a string
+        const methodStr = String(method);
+        // Get the appropriate color for this method
+        let color;
+        switch (methodStr.toUpperCase()) {
+          case "GET":
+            color = this.colors.green;
+            break;
+          case "POST":
+            color = this.colors.blue;
+            break;
+          case "PUT":
+            color = this.colors.yellow;
+            break;
+          case "DELETE":
+            color = this.colors.red;
+            break;
+          case "PATCH":
+            color = this.colors.cyan;
+            break;
+          default:
+            color = this.colors.white;
+        }
+        // Apply color and reset after
+        return `${color}${methodStr}${this.colors.reset}`;
       })
       .join(", ");
   }
 };
 
+// Create direct module exports instead of binding
 module.exports = {
   colors: colorUtils.colors,
-  getMethodColor: colorUtils.getMethodColor.bind(colorUtils),
-  colorizeMethods: colorUtils.colorizeMethods.bind(colorUtils),
-  colorizeMethodsString: colorUtils.colorizeMethodsString.bind(colorUtils)
+  getMethodColor: (method) => colorUtils.getMethodColor.call(colorUtils, method),
+  colorizeMethods: (methods) => colorUtils.colorizeMethods.call(colorUtils, methods),
+  colorizeMethodsString: (methods) => colorUtils.colorizeMethodsString.call(colorUtils, methods)
 };

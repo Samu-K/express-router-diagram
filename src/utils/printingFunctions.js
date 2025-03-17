@@ -118,7 +118,9 @@ const printingFunctions = {
         console.log("Hierarchical diagram (simplified for tests)");
       } else {
         // Use the fixed printHierarchyToString function
-        const hierarchyString = hierarchyUtils.printHierarchyToString(hierarchy);
+        const hierarchyString = hierarchyUtils.printHierarchyToString(hierarchy, 0, {
+          useColors: true
+        });
         console.log(hierarchyString);
       }
     } else {

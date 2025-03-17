@@ -15,14 +15,22 @@ test("Children popup loads", async ({ page }) => {
 
 test("Methods render", async ({ page }) => {
   await page.goto("/express-routes");
+  await page
+    .locator("g")
+    .filter({ hasText: /^usersGETPOST$/ })
+    .locator("text")
+    .nth(1)
+    .click({
+      button: "right"
+    });
   await expect(
     page
       .locator("g")
-      .filter({ hasText: /^GETPUTDELETE$/ })
+      .filter({ hasText: /^usersGETPOST$/ })
       .locator("text")
-      .first()
+      .nth(1)
   ).toBeVisible();
+  await expect(page.getByText("POST").nth(3)).toBeVisible();
   await expect(page.locator("#diagram-container").getByText("PUT")).toBeVisible();
   await expect(page.locator("#diagram-container").getByText("DELETE")).toBeVisible();
-  await expect(page.getByText("POST", { exact: true }).nth(2)).toBeVisible();
 });
