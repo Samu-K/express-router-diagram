@@ -13,30 +13,30 @@ const printingFunctions = require("./utils/printingFunctions");
 
 // Export all modules and functions
 module.exports = {
-	// Color utilities
-	colors: colorUtils.colors,
-	getMethodColor: colorUtils.getMethodColor,
-	colorizeMethods: colorUtils.colorizeMethods,
-	colorizeMethodsString: colorUtils.colorizeMethodsString,
+  // Color utilities
+  colors: colorUtils.colors,
+  getMethodColor: colorUtils.getMethodColor,
+  colorizeMethods: colorUtils.colorizeMethods,
+  colorizeMethodsString: colorUtils.colorizeMethodsString,
 
-	// Hierarchy utilities
-	organizeRoutesHierarchy: hierarchyUtils.organizeRoutesHierarchy,
-	printHierarchyToString: hierarchyUtils.printHierarchyToString,
-	processHierarchyNode: hierarchyUtils.processHierarchyNode,
-	getLinePrefix: hierarchyUtils.getLinePrefix,
-	getChildPrefix: hierarchyUtils.getChildPrefix,
+  // Hierarchy utilities
+  organizeRoutesHierarchy: hierarchyUtils.organizeRoutesHierarchy,
+  printHierarchyToString: hierarchyUtils.printHierarchyToString,
+  processHierarchyNode: hierarchyUtils.processHierarchyNode,
+  getLinePrefix: hierarchyUtils.getLinePrefix,
+  getChildPrefix: hierarchyUtils.getChildPrefix,
 
-	// File utilities
-	saveDiagram: fileUtils.saveDiagram,
+  // File utilities
+  saveDiagram: fileUtils.saveDiagram,
 
-	// Diagram generation
-	generateTextDiagram: diagramUtils.generateTextDiagram,
+  // Diagram generation
+  generateTextDiagram: diagramUtils.generateTextDiagram,
 
-	// Route filtering
-	filterRoutes: filterUtils.filterRoutes,
+  // Route filtering
+  filterRoutes: filterUtils.filterRoutes,
 
-	// Main printing functions
-	printRoutes: printingFunctions.printRoutes,
-	printAppRoutes: printingFunctions.printAppRoutes,
-	printRoutesInMiddleware: printingFunctions.printRoutesInMiddleware,
+  // Main printing functions
+  printRoutes: printingFunctions.printRoutes,
+  printAppRoutes: printingFunctions.printAppRoutes,
+  printRoutesInMiddleware: printingFunctions.printRoutesInMiddleware
 };

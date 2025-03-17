@@ -1,74 +1,74 @@
 {
-	"name": "express-router-diagram",
-	"version": "1.0.0",
-	"description": "A lightweight utility for visualizing Express.js routes with interactive D3.js diagrams",
-	"main": "src/index.js",
-	"bin": {
-		"express-router-diagram": "./src/cli.js"
-	},
-	"scripts": {
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
-		"test:e2e": "playwright test",
-		"test:all": "vitest run tests/unit/playwright-bridge.test.js",
-		"test:ci": "vitest run && npx playwright install --with-deps chromium && npx playwright test",
-		"clean": "rm -rf coverage test-results playwright-report blob-report",
-		"example": "node src/example.js",
-		"web": "node src/cli.js --app src/example.js --server 3000",
-		"prepublishOnly": "npm test",
-		"fmt": "biome format --write .",
-		"lint": "biome lint .",
-		"lint:fix": "biome lint --write ."
-	},
-	"keywords": [
-		"express",
-		"router",
-		"diagram",
-		"visualization",
-		"routes",
-		"middleware",
-		"d3",
-		"interactive"
-	],
-	"author": "samuk <samu.kaarlela@gmail.com> (https://github.com/Samu-K)",
-	"license": "MIT",
-	"dependencies": {
-		"d3": "^7.8.5",
-		"express": ">=4.0.0"
-	},
-	"peerDependencies": {
-		"express": ">=4.0.0"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
-		"@playwright/test": "^1.51.0",
-		"@types/node": "^22.13.10",
-		"@vitest/coverage-v8": "^1.0.0",
-		"supertest": "^6.3.3",
-		"vitest": "^1.0.0"
-	},
-	"engines": {
-		"node": ">=16.0.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/Samu-K/express-router-diagram.git"
-	},
-	"bugs": {
-		"url": "https://github.com/Samu-K/express-router-diagram/issues"
-	},
-	"homepage": "https://github.com/Samu-K/express-router-diagram#readme",
-	"files": [
-		"src/index.js",
-		"src/cli.js",
-		"src/extractRoutes.js",
-		"src/printRoutes.js",
-		"src/webDiagram.js",
-		"src/utils/",
-		"views/",
-		"public/",
-		"README.md",
-		"LICENSE"
-	]
+  "name": "express-router-diagram",
+  "version": "1.0.0",
+  "description": "A lightweight utility for visualizing Express.js routes with interactive D3.js diagrams",
+  "main": "src/index.js",
+  "bin": {
+    "express-router-diagram": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:all": "vitest run tests/unit/playwright-bridge.test.js",
+    "test:ci": "vitest run && npx playwright install --with-deps chromium && npx playwright test",
+    "clean": "rm -rf coverage test-results playwright-report blob-report",
+    "example": "node src/example.js",
+    "web": "node src/cli.js --app src/example.js --server 3000",
+    "prepublishOnly": "npm test",
+    "fmt": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write ."
+  },
+  "keywords": [
+    "express",
+    "router",
+    "diagram",
+    "visualization",
+    "routes",
+    "middleware",
+    "d3",
+    "interactive"
+  ],
+  "author": "samuk <samu.kaarlela@gmail.com> (https://github.com/Samu-K)",
+  "license": "MIT",
+  "dependencies": {
+    "d3": "^7.8.5",
+    "express": ">=4.0.0"
+  },
+  "peerDependencies": {
+    "express": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@playwright/test": "^1.51.0",
+    "@types/node": "^22.13.10",
+    "@vitest/coverage-v8": "^1.0.0",
+    "supertest": "^6.3.3",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Samu-K/express-router-diagram.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Samu-K/express-router-diagram/issues"
+  },
+  "homepage": "https://github.com/Samu-K/express-router-diagram#readme",
+  "files": [
+    "src/index.js",
+    "src/cli.js",
+    "src/extractRoutes.js",
+    "src/printRoutes.js",
+    "src/webDiagram.js",
+    "src/utils/",
+    "views/",
+    "public/",
+    "README.md",
+    "LICENSE"
+  ]
 }
